@@ -1,0 +1,21 @@
+(1) Jel Vam draže natjecati se u timu ili kao indivudualac? [U timu; Individualno]
+(2) Gdje biste se bolje pronašli, u rješavanju zagonetki ili u bildanju u teretani? [Rješavanje zagonetki; GYM]
+(3) Je li Vam draže trèati ili plivati [Trèati; Plivati]
+(4) Gdje biste bili bolji, na dužim ili kraæim utrkama? [Dužim; Kraæim]
+(5) Jeste li visoka osoba? [Da; Ne]
+(6) Koja podloga Vam se najviše sviða? [Led; Voda; Tlo]
+(7)
+(8) Koji je Vaš spol? [Muško; Žensko]
+(9) Što Vam je važnije, efikasnost ili dizajn stvari? [Efikasnost; Dizajn]
+(10) Da ste u srednjovjekovnom ratu, bili ste bili strijelac ili vitez? [Strijelac; Vitez]
+(11) Zašto biste se bavili sportom? [Novac; Zadovoljstvo]
+(12) Bili ste se radije bavili sportom u dvorani ili "na suncu"? [U dvorani; Izvan dvorane]
+(13) Jesu li Vam draže visine ili nizine? [Visine; Nizine]
+(14) Bili ste radije provodili vrijeme u gradu ili u prirodi? [U gradu; U prirodi]
+(15) Što biste najradije vozili od navedenog? [Auti; Motori; Brodovi; Bicikl]
+(16)
+(17)
+(18) Jesu li Vam draže gledati Formulu 1 ili utrke ljudi? [F1; Utrke ljudi]
+(19) Je li Vam iznimna želja postati poznat preko sporta? [Da; Ne]
+(20) Koji Vam je draži pozdrav od navedenog? [Rukovanje; Besa]
+(21) Gdje ste vještiji (ili jaæi), u rukama ili u nogama? [U rukama; U nogama]

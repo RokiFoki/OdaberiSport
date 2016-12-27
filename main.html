@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Odaberite sport!</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+  
+  
+	<style>
+		body {
+			background-image: url("img/background.jpg");
+			background-size:cover;
+			background-repeat: no-repeat;
+			background-position: 0 100px; 
+			min-height=100%
+		}
+		h1 {
+			margin: 0 20;
+		}
+		
+		img {
+			opacity:0;
+			transition: all 1.2s linear 0s;
+		}
+		
+		img.no-opacity { opacity:1; }
+	</style>
+	<script>
+	function readTextFile(file)	{
+		var allText = "";
+		var rawFile = new XMLHttpRequest();
+		rawFile.open("GET", file, false);
+		rawFile.overrideMimeType('text/xml; charset=iso-8859-1');
+		rawFile.onreadystatechange = function ()
+		{
+			if(rawFile.readyState === 4)
+			{
+				if(rawFile.status === 200 || rawFile.status == 0)
+				{
+					allText = rawFile.responseText;				
+				}
+			}
+		}
+		rawFile.send(null);
+		return allText;
+	}
+	
+	class Pitanje{
+		constructor(pitanje, odgovori) {
+			this.pitanje = pitanje;
+			this.odgovori = odgovori.slice();
+			this.koristeno = false;
+		}
+	}
+	
+	class Odgovor {
+		constructor(indeks, tekst) {
+			this.indeks = indeks;
+			this.tekst = tekst;
+		}
+	}
+	
+	class Sport {
+		constructor(indeks, ime, brojnost, src) {
+			this.indeks = indeks;
+			this.ime = ime;
+			this.vjerojatnost = brojnost;
+			this.src = src;
+		}
+	}
+	
+	function dohvati_pitanja(pitanja_tekst) {
+		var pitanja = [];
+		pitanje_regexp = /\(([0-9]+)\) (.*) \[(.*)\]/;
+		
+		var continue_times = 0;
+		for(pitanje_id in pitanja_tekst) {	
+			if(continue_times > 0) {
+				continue_times--;
+				continue;
+			}
+			var match = pitanje_regexp.exec(pitanja_tekst[pitanje_id])
+			indeks = parseInt(match[1])
+			pitanje_tekst = match[2]
+			odgovori_tekst = match[3].split("; ")
+			
+			var odgovori =[]
+			for(odgovor_id in odgovori_tekst.slice(0, -1)) {
+				odgovori.push(new Odgovor(parseInt(odgovor_id)+indeks, odgovori_tekst[odgovor_id]))
+			}
+			odgovori.push(new Odgovor(-1, odgovori_tekst[odgovori_tekst.length - 1]))
+			pitanja.push(new Pitanje(pitanje_tekst, odgovori))
+			
+			continue_times = odgovori_tekst.length-2;
+		}
+		
+		return pitanja;
+	}
+	
+	function dohvati_sportove(sportovi_tekst) {
+		var sportovi = [];
+		sport_regexp = /\(([0-9]+)\) ([^0-9]*) ([0-9]+) (.*)/;
+		
+		for(sport_id in sportovi_tekst) {
+			var match = sport_regexp.exec(sportovi_tekst[sport_id])
+			var indeks = parseInt(match[1]);
+			var ime = match[2];
+			var brojnost = parseInt(match[3]);
+			var src = "img/" + match[4];
+			sportovi.push(new Sport(indeks, ime, brojnost, src));
+		}
+				
+		return sportovi;
+	}
+	
+	function dohvati_vjerojatnosti(vjerojatnosti_tekst) {
+		vjerojatnosti = []
+		vjerojatnosti_regexp = /P\(([0-9]+)\|([0-9]+)\)=([0-9]+)/;
+		
+		for(vjerojatnosti_id in vjerojatnosti_tekst) {	
+			var linija = vjerojatnosti_tekst[vjerojatnosti_id].trim();
+			if(linija.length == 0 || linija.startsWith("#")) continue;
+			
+			var match = vjerojatnosti_regexp.exec(linija);
+			var pitanje = parseInt(match[1])
+			var sport = parseInt(match[2])
+			var vjerojatnost = parseInt(match[3])
+			
+			if(vjerojatnosti[sport] === undefined) vjerojatnosti[sport] = [];
+			
+			vjerojatnosti[sport][pitanje] = vjerojatnost;		
+		}
+		
+		return vjerojatnosti;
+	}
+	
+	function odaberi_pitanje(sportovi, pitanja, vjerojatnosti, first_few=3) {
+		var maxDobrota = -1;
+		var maxPitanje = null;
+		for(var id_pitanja in pitanja) {
+			var pitanje = pitanja[id_pitanja];
+			
+			if(pitanje.koristeno == true) continue;
+					
+			var dobrota = 0;
+			for(var i = 1; i < first_few; ++i) {
+				var sport1 = sportovi[i].indeks;
+				var sport2 = sportovi[i-1].indeks;
+			
+				var uk1 = 100;
+				var uk2 = 100;
+				
+				for(var id_odgovor in pitanje.odgovori) {
+					var indeksPitanja = pitanje.odgovori[id_odgovor].indeks;
+					
+					if(pitanje.odgovori[id_odgovor].indeks == -1) {
+						dobrota += Math.abs(uk1 - uk2);
+					} else {
+						var vjer1 = vjerojatnosti[sport1][indeksPitanja];
+						var vjer2 = vjerojatnosti[sport2][indeksPitanja];
+						
+						dobrota += Math.abs(vjer1 - vjer2);
+						
+						uk1 -= vjer1;
+						uk2 -= vjer2;
+					}
+					
+				}
+			}
+			
+			if(dobrota > maxDobrota) {
+				maxDobrota = dobrota;
+				maxPitanje = pitanje;
+			}			
+		}		
+		return maxPitanje;
+	}
+	
+	var app = angular.module('App', []);
+	app.controller('Cnt', function($scope) {
+		var pitanja_tekst = readTextFile("file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Pitanja.txt").split('\n');
+		var pitanja = dohvati_pitanja(pitanja_tekst)
+		
+		var sportovi_tekst = readTextFile("file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Sportovi.txt").split('\n');
+		var sportovi = dohvati_sportove(sportovi_tekst)
+		
+		var vjerojatnosti_tekst = readTextFile("file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Vjerojatnosti.txt").split('\n');
+		var vjerojatnosti = dohvati_vjerojatnosti(vjerojatnosti_tekst);
+		
+		$scope.imgFirst = "img/soccer.jpg";
+		$scope.imgSecond = "img/soccer.jpg";
+		$scope.imgThird = "img/soccer.jpg";
+		
+		$scope.prikaziSportove = function(sportovi) {
+			$("img").removeClass("no-opacity");
+			
+			console.log(sportovi[0].ime);
+			console.log(sportovi[1].ime);
+			console.log(sportovi[2].ime);
+			
+			setTimeout(function(){	
+				$scope.imgFirst = sportovi[0].src;
+				$scope.imgSecond = sportovi[1].src;
+				$scope.imgThird = sportovi[2].src;
+				$scope.$apply();
+				setTimeout(function() {
+					$("img").addClass("no-opacity");
+				}, 100);
+			}, 1200);
+		}
+		
+		$scope.postaviPitanje = function() {
+			sportovi.sort((a,b) => { return a.vjerojatnost < b.vjerojatnost? 1 : (a.vjerojatnost == b.vjerojatnost? 0 : -1) } );
+			
+			$scope.prikaziSportove(sportovi.slice(0,3));			
+			
+			pitanjeO = odaberi_pitanje(sportovi, pitanja, vjerojatnosti);
+			
+			if(pitanjeO == null) {
+				$scope.pitanje = "Nema više pitanja!";
+				$scope.odgovori = [];
+				return;
+			}
+			pitanjeO.koristeno = true;
+						
+			$scope.pitanje = pitanjeO.pitanje;
+			$scope.odgovori = pitanjeO.odgovori;
+		} 
+		$scope.postaviPitanje();
+		
+		$scope.odgovoriPitanje = function(indeksOdogovor) {
+			for(var sport_id in sportovi) {
+				var indeksSport = sportovi[sport_id].indeks;				
+				
+				var vjerojatnost;
+				if(indeksOdogovor != -1) vjerojatnost = vjerojatnosti[indeksSport][indeksOdogovor];
+				else  {
+					vjerojatnost = 100;
+					for(var odgovor_id in $scope.odgovori.slice(0, -1)) {
+						var odgIndeks = $scope.odgovori[odgovor_id].indeks;
+						vjerojatnost -= vjerojatnosti[indeksSport][odgIndeks];
+					}
+					
+				}
+				sportovi[sport_id].vjerojatnost *= vjerojatnost / 50;
+			}
+			$scope.postaviPitanje();
+		}
+	});
+	</script>
+  
+</head>
+<body>
+<body>
+<div ng-app="App" ng-controller="Cnt">
+	<h2>Pitanje: {{pitanje}}</h2> 
+	<div ng-repeat="odgovor in odgovori">
+		<button  ng-click="odgovoriPitanje(odgovor.indeks)">{{odgovor.tekst}}</button>
+	</div>
+	<div style="margin: 10% 50px;">
+		<img ng-src="{{imgFirst}}" width="30%"/>
+		<img ng-src="{{imgSecond}}" width="30%" style="margin:0 4%"/>
+		<img ng-src="{{imgThird}}" width="30%"/>
+	</div>
+</div>
+</body>
+</html> 
