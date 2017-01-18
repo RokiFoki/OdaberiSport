@@ -28,6 +28,7 @@
 		
 		img.no-opacity { opacity:1; }
 	</style>
+	
 	<script>
 	function readTextFile(file)	{
 		var allText = "";
@@ -118,7 +119,7 @@
 		}
 		
 		for(sport_id in sportovi) {
-			sportovi[sport_id].vjerojatnost -= Math.log(uk_brojnost);
+			sportovi[sport_id].vjerojatnost -= Math.log(uk_brojnost/100);
 		}
 				
 		return sportovi;
@@ -145,7 +146,7 @@
 		return vjerojatnosti;
 	}
 	
-	function odaberi_pitanje(sportovi, pitanja, vjerojatnosti, first_few=3) {
+	function odaberi_pitanje(sportovi, pitanja, vjerojatnosti, broj_najvjerojatnijih=3) {
 		var maxDobrota = -1;
 		var maxPitanje = null;
 		for(var id_pitanja in pitanja) {
@@ -154,7 +155,7 @@
 			if(pitanje.koristeno == true) continue;
 					
 			var dobrota = 0;
-			for(var i = 1; i < first_few; ++i) {
+			for(var i = 1; i < broj_najvjerojatnijih; ++i) {
 				var sport1 = sportovi[i].indeks;
 				var sport2 = sportovi[i-1].indeks;
 			
@@ -190,8 +191,7 @@
 	app.controller('Cnt', function($scope) {
 		var putanja_do_pitanja = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Pitanja.txt";
 		var putanja_do_sportova = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Sportovi.txt";
-		var putanja_do_vjerojatnosti = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Vjerojatnosti.txt";
-	
+		var putanja_do_vjerojatnosti = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Vjerojatnosti.txt";	
 	
 		var pitanja_tekst = readTextFile(putanja_do_pitanja).split('\n');
 		var pitanja = dohvati_pitanja(pitanja_tekst)
@@ -257,7 +257,7 @@
 					}
 					
 				}
-				sportovi[sport_id].vjerojatnost += Math.log(vjerojatnost / 100);
+				sportovi[sport_id].vjerojatnost += Math.log(vjerojatnost);
 			}
 			$scope.postaviPitanje();
 		}
