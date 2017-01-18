@@ -1,1 +1,1 @@
-"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --allow-file-access-from-files
+"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --allow-file-access-from-files "file:///C:/Users/Roko/Desktop/ekspertni sustavi/main.html"

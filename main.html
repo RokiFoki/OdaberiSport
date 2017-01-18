@@ -2,20 +2,19 @@
 <html>
 <head>
 	<title>Odaberite sport!</title>
-	<meta charset="utf-8">
+	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
   
-  
 	<style>
 		body {
 			background-image: url("img/background.jpg");
 			background-size:cover;
 			background-repeat: no-repeat;
-			background-position: 0 100px; 
+			background-position: 0 50px; 
 			min-height=100%
 		}
 		h1 {
@@ -34,7 +33,7 @@
 		var allText = "";
 		var rawFile = new XMLHttpRequest();
 		rawFile.open("GET", file, false);
-		rawFile.overrideMimeType('text/xml; charset=iso-8859-1');
+		rawFile.overrideMimeType('text/xml; charset=UTF-8');
 		rawFile.onreadystatechange = function ()
 		{
 			if(rawFile.readyState === 4)
@@ -58,9 +57,10 @@
 	}
 	
 	class Odgovor {
-		constructor(indeks, tekst) {
+		constructor(indeks, tekst, duljina) {
 			this.indeks = indeks;
 			this.tekst = tekst;
+			this.duljina = duljina;
 		}
 	}
 	
@@ -87,12 +87,13 @@
 			indeks = parseInt(match[1])
 			pitanje_tekst = match[2]
 			odgovori_tekst = match[3].split("; ")
+			duljin_pitanja = 100 / odgovori_tekst.length;
 			
 			var odgovori =[]
 			for(odgovor_id in odgovori_tekst.slice(0, -1)) {
-				odgovori.push(new Odgovor(parseInt(odgovor_id)+indeks, odgovori_tekst[odgovor_id]))
+				odgovori.push(new Odgovor(parseInt(odgovor_id)+indeks, odgovori_tekst[odgovor_id], duljin_pitanja))
 			}
-			odgovori.push(new Odgovor(-1, odgovori_tekst[odgovori_tekst.length - 1]))
+			odgovori.push(new Odgovor(-1, odgovori_tekst[odgovori_tekst.length - 1], duljin_pitanja))
 			pitanja.push(new Pitanje(pitanje_tekst, odgovori))
 			
 			continue_times = odgovori_tekst.length-2;
@@ -105,13 +106,19 @@
 		var sportovi = [];
 		sport_regexp = /\(([0-9]+)\) ([^0-9]*) ([0-9]+) (.*)/;
 		
+		var uk_brojnost = 0;
 		for(sport_id in sportovi_tekst) {
 			var match = sport_regexp.exec(sportovi_tekst[sport_id])
 			var indeks = parseInt(match[1]);
 			var ime = match[2];
 			var brojnost = parseInt(match[3]);
+			uk_brojnost += brojnost;
 			var src = "img/" + match[4];
-			sportovi.push(new Sport(indeks, ime, brojnost, src));
+			sportovi.push(new Sport(indeks, ime, Math.log(brojnost), src));
+		}
+		
+		for(sport_id in sportovi) {
+			sportovi[sport_id].vjerojatnost -= Math.log(uk_brojnost);
 		}
 				
 		return sportovi;
@@ -167,8 +174,7 @@
 						
 						uk1 -= vjer1;
 						uk2 -= vjer2;
-					}
-					
+					}					
 				}
 			}
 			
@@ -182,13 +188,18 @@
 	
 	var app = angular.module('App', []);
 	app.controller('Cnt', function($scope) {
-		var pitanja_tekst = readTextFile("file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Pitanja.txt").split('\n');
+		var putanja_do_pitanja = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Pitanja.txt";
+		var putanja_do_sportova = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Sportovi.txt";
+		var putanja_do_vjerojatnosti = "file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Vjerojatnosti.txt";
+	
+	
+		var pitanja_tekst = readTextFile(putanja_do_pitanja).split('\n');
 		var pitanja = dohvati_pitanja(pitanja_tekst)
 		
-		var sportovi_tekst = readTextFile("file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Sportovi.txt").split('\n');
+		var sportovi_tekst = readTextFile(putanja_do_sportova).split('\n');
 		var sportovi = dohvati_sportove(sportovi_tekst)
 		
-		var vjerojatnosti_tekst = readTextFile("file:///C:/Users/Roko/Desktop/ekspertni%20sustavi/Vjerojatnosti.txt").split('\n');
+		var vjerojatnosti_tekst = readTextFile(putanja_do_vjerojatnosti).split('\n');
 		var vjerojatnosti = dohvati_vjerojatnosti(vjerojatnosti_tekst);
 		
 		$scope.imgFirst = "img/soccer.jpg";
@@ -221,7 +232,7 @@
 			pitanjeO = odaberi_pitanje(sportovi, pitanja, vjerojatnosti);
 			
 			if(pitanjeO == null) {
-				$scope.pitanje = "Nema viöe pitanja!";
+				$scope.pitanje = "Nema vi≈°e pitanja!";
 				$scope.odgovori = [];
 				return;
 			}
@@ -246,7 +257,7 @@
 					}
 					
 				}
-				sportovi[sport_id].vjerojatnost *= vjerojatnost / 50;
+				sportovi[sport_id].vjerojatnost += Math.log(vjerojatnost / 100);
 			}
 			$scope.postaviPitanje();
 		}
@@ -257,11 +268,15 @@
 <body>
 <body>
 <div ng-app="App" ng-controller="Cnt">
-	<h2>Pitanje: {{pitanje}}</h2> 
-	<div ng-repeat="odgovor in odgovori">
-		<button  ng-click="odgovoriPitanje(odgovor.indeks)">{{odgovor.tekst}}</button>
+	<h2 style="margin:auto; text-align: center">Pitanje: {{pitanje}}</h2> 
+	<div style="height:200px;"> 
+		<div ng-repeat="odgovor in odgovori" ng-click="odgovoriPitanje(odgovor.indeks)" style="width:{{odgovor.duljina}}%; height:100%; display:inline-block;">
+			<button style="width:100%; height:100%">
+				{{odgovor.tekst}}
+			</button>
+		</div>
 	</div>
-	<div style="margin: 10% 50px;">
+	<div style="margin: 3% 50px;">
 		<img ng-src="{{imgFirst}}" width="30%"/>
 		<img ng-src="{{imgSecond}}" width="30%" style="margin:0 4%"/>
 		<img ng-src="{{imgThird}}" width="30%"/>

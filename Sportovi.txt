@@ -1,6 +1,6 @@
 (1) nogomet 400 soccer.jpg
 (2) rukomet 220 handball.jpg
-(3) košarka 300 basketball.jpg
+(3) koÅ¡arka 300 basketball.jpg
 (4) ragbi 240 rugby.jpg 
 (5) vaterpolo 215 vaterpolo.jpg
 (6) hokej 200 hockey.jpg
@@ -16,16 +16,16 @@
 (16) formula 220 formula.jpg
 (17) utrke motora 180 moto.jpg
 (18) utrke brodova 100 ship.jpg
-(19) maèevanje 160 macevanje.jpg
+(19) maÄevanje 160 macevanje.jpg
 (20) pikado 110 pikado.jpg
-(21) strelièarstvo 110 strelicarstvo.jpg
-(22) umjetnièko klizanje 100 klizanje.jpg
+(21) streliÄarstvo 110 strelicarstvo.jpg
+(22) umjetniÄko klizanje 100 klizanje.jpg
 (23) gimnastika (umjetnost) 150 gimnastika.jpg
 (24) golf 160 golf.jpg
 (25) snooker 110 snooker.jpg
 (26) tenis 260 tenis.jpg
 (27) stolni tenis 150 stolnitenis.jpg
-(28) šah 120 sah.jpg
+(28) Å¡ah 120 sah.jpg
 (29) boks 130 boks.jpg
 (30) dizanje utega 130 utezi.jpg
-(31) boèanje 100 bocanje.jpg
+(31) boÄanje 100 bocanje.jpg
